@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>بطاقة رمضان - إضافة اسم</title>
+
+  <style>
+    :root{
+      --nameColor:#E8B47A;
+      --panel: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.14);
+    }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+      background:#062b30;
+      color:#fff;
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+    }
+
+    .wrap{ width:min(980px, 100%); display:grid; gap:14px; }
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px;
+      backdrop-filter: blur(6px);
+    }
+
+    /* شريط الإدخال + الأزرار */
+    .controls{
+      display:flex;
+      gap:14px;              /* مسافة واضحة بين الجانبين */
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+
+    /* المجموعة: الحقل + الأزرار */
+    .controls .left{
+      display:flex;
+      gap:12px;              /* يمنع الالتصاق */
+      flex-wrap:wrap;
+      align-items:flex-end;
+      flex: 1 1 620px;       /* تخلي المجموعة تتمدد وتلف بالجوال */
+      min-width: 280px;
+    }
+
+    /* بلوك الإدخال لوحده ياخذ أكبر مساحة */
+    .field{
+      flex: 1 1 360px;       /* خلي الحقل يتمدد */
+      min-width: 240px;
+    }
+
+    label{ display:block; font-size:14px; opacity:.9; margin-bottom:6px }
+
+    input{
+      width:100%;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.22);
+      color:#fff;
+      outline:none;
+      box-sizing:border-box;
+    }
+
+    button{
+      padding:12px 16px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(232,180,122,.16);
+      color:#fff;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    button:hover{ background:rgba(232,180,122,.24) }
+
+    .hint{ margin:10px 0 0; font-size:13px; opacity:.85; line-height:1.7; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+      align-items:start;
+    }
+
+    canvas{
+      width:100%;
+      height:auto;
+      display:block;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#0b3f46;
+    }
+
+    code{ background:rgba(0,0,0,.22); padding:2px 6px; border-radius:6px; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="controls">
+        <div class="left">
+          <div class="field">
+            <label for="name">اكتب اسمك</label>
+            <input id="name" type="text" placeholder="مثال: محمد" />
+          </div>
+
+          <button id="renderBtn">عرض بالاسم</button>
+          <button id="downloadBtn">حفظ PNG</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <canvas id="c" width="1024" height="1024"></canvas>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // مسار صورتك المحلية (غيّر الامتداد إذا لازم)
+  const LOCAL_IMAGE_SRC = "images/im1.png";
+
+  // إعدادات الاسم
+  const NAME_COLOR = "#E8B47A";
+  const NAME_FONT  = "600 40px Tahoma, Arial, system-ui";
+  const NAME_Y = 850;
+
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+
+  const nameInput = document.getElementById("name");
+  const renderBtn = document.getElementById("renderBtn");
+  const downloadBtn = document.getElementById("downloadBtn");
+
+  const img = new Image();
+  img.src = LOCAL_IMAGE_SRC;
+
+  function drawBase() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#0b3f46";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cw = canvas.width, ch = canvas.height;
+    const iw = img.naturalWidth || 1024;
+    const ih = img.naturalHeight || 1024;
+
+    const scale = Math.max(cw / iw, ch / ih);
+    const nw = iw * scale;
+    const nh = ih * scale;
+    const x = (cw - nw) / 2;
+    const y = (ch - nh) / 2;
+
+    ctx.drawImage(img, x, y, nw, nh);
+  }
+
+  function drawName(name) {
+    const safe = String(name || "").trim().slice(0, 28);
+    if (!safe) return;
+
+    ctx.save();
+    ctx.direction = "rtl";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.shadowColor = "rgba(0,0,0,0.35)";
+    ctx.shadowBlur = 6;
+
+    ctx.fillStyle = NAME_COLOR;
+    ctx.font = NAME_FONT;
+
+    ctx.fillText(safe, canvas.width / 2, NAME_Y);
+    ctx.restore();
+  }
+
+  async function render() {
+    if (!img.complete) {
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = rej;
+      });
+    }
+    drawBase();
+    drawName(nameInput.value);
+  }
+
+  function downloadPNG() {
+    const a = document.createElement("a");
+    a.download = "ramadan-name.png";
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  }
+
+  renderBtn.addEventListener("click", () => render().catch(() => {}));
+  downloadBtn.addEventListener("click", downloadPNG);
+
+  img.onload = () => render();
+  img.onerror = () => {
+    alert(
+      "ما قدرت أحمل الصورة.\n" +
+      "تأكد من وجود الملف بهذا المسار:\n" + LOCAL_IMAGE_SRC + "\n\n" +
+      "وتأكد من الامتداد (png/jpg/webp)."
+    );
+  };
+</script>
+
+</body>
+</html>
