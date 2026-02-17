@@ -126,7 +126,7 @@
   const NAME_TEXT_COLOR = "#EEF2ED";
 
   // ننزل الاسم شوي داخل اللوحة (زيادة عن الوسط)
-  const NAME_Y_OFFSET = 10; // زوّدها 5/10/15 حسب رغبتك
+  const NAME_Y_OFFSET = 18; // زوّدها 5/10/15 حسب رغبتك
   // --------------------------------------
 
   // مكان اللوحة (حسب مقاس 709x1000 مثل صور المثال) [Source](https://www.genspark.ai/api/files/s/Eayugj40)
@@ -165,8 +165,9 @@
     ctx.fillStyle = NAME_TEXT_COLOR;
     ctx.font = NAME_FONT;
 
-    const x = PLATE.x + PLATE.w/2;
-    const y = PLATE.y + PLATE.h/2 + NAME_Y_OFFSET; // هنا النزول
+     const NAME_X_OFFSET = 12; // يمين شوي
+     const x = PLATE.x + PLATE.w/2 + NAME_X_OFFSET;
+     const y = PLATE.y + PLATE.h/2 + NAME_Y_OFFSET; // هنا النزول
     ctx.fillText(safe, x, y);
 
     ctx.restore();
